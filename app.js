@@ -3,6 +3,7 @@ const mongoose = require('mongoose')
 const path = require('path')
 const Campground = require('./models/campground')
 const methodOverride = require('method-override')
+const ejsMate = require('ejs-mate')
 
 mongoose.set('returnOriginal', false)
 
@@ -12,6 +13,8 @@ app.use(methodOverride('_method'))
 
 app.set('views engine', 'ejs')
 app.set('views', path.join(__dirname, 'views'))
+
+app.engine('ejs', ejsMate)
 
 const conectionvar = async () => {
   try {
@@ -78,6 +81,6 @@ app.delete('/campground/:id', async (req, res) => {
   res.redirect('/campground')
 })
 
-app.listen(3001, () => {
+app.listen(3006, () => {
   console.log('Hello ! welcome to Yelp-Camp')
 })
