@@ -57,8 +57,8 @@ app.post('/campground', async (req, res) => {
 })
 
 app.get('/campground/:id', async (req, res) => {
-  const camp = await Campground.findById(req.params.id)
-  res.render('campground/show.ejs', { camp })
+  const campground = await Campground.findById(req.params.id)
+  res.render('campground/show.ejs', { campground })
 })
 
 app.put('/campground/:id', async (req, res) => {
@@ -81,6 +81,6 @@ app.delete('/campground/:id', async (req, res) => {
   res.redirect('/campground')
 })
 
-app.listen(3006, () => {
+app.listen(3000, () => {
   console.log('Hello ! welcome to Yelp-Camp')
 })
