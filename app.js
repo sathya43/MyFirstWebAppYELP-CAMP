@@ -6,7 +6,9 @@ const methodOverride = require('method-override')
 const ejsMate = require('ejs-mate')
 const catchAsync = require('./utils/cathcAsync.js')
 const ExpressError = require('./utils/ExpressError')
-const { campgroundSchema } = require('./schemas.js')
+const { campgroundSchema, reviewSchema } = require('./schemas.js')
+const cathcAsync = require('./utils/cathcAsync.js')
+const Review = require('./models/reviews')
 
 const app = express()
 app.use(express.urlencoded({ extended: true }))
@@ -37,6 +39,16 @@ db.once('open', () => {
 
 const validateCampground = (req, res, next) => {
   const { error } = campgroundSchema.validate(req.body)
+  if (error) {
+    const msg = error.details.map((el) => el.message).join(',')
+    throw new ExpressError(msg, 400)
+  } else {
+    next()
+  }
+}
+
+const validateReview = (req, res, next) => {
+  const { error } = reviewSchema.validate(req.body)
   if (error) {
     const msg = error.details.map((el) => el.message).join(',')
     throw new ExpressError(msg, 400)
@@ -79,7 +91,9 @@ app.post(
 app.get(
   '/campground/:id',
   catchAsync(async (req, res) => {
-    const campground = await Campground.findById(req.params.id)
+    const campground = await Campground.findById(req.params.id).populate(
+      'reviews'
+    )
     res.render('campground/show.ejs', { campground })
   })
 )
@@ -114,6 +128,29 @@ app.delete(
   })
 )
 
+app.post(
+  '/campground/:id/review',
+  validateReview,
+  cathcAsync(async (req, res) => {
+    const campground = await Campground.findById(req.params.id)
+    const review = new Review(req.body.review)
+    campground.reviews.push(review)
+    await review.save()
+    await campground.save()
+    res.redirect(`/campground/${campground._id}`)
+  })
+)
+
+app.delete(
+  '/campground/:id/review/:reviewId',
+  catchAsync(async (req, res) => {
+    const { id, reviewId } = req.params
+    await Campground.findByIdAndUpdate(id, { $pull: { reviews: reviewId } })
+    await Review.findByIdAndDelete(reviewId)
+    res.redirect(`/campground/${id}`)
+  })
+)
+
 app.get('/dogs', (req, res) => {
   chicken.fly()
 })
@@ -128,6 +165,6 @@ app.use((err, req, res, next) => {
   console.log('error')
 })
 
-app.listen(8005, () => {
+app.listen(3000, () => {
   console.log('Hello ! welcome to Yelp-Camp')
 })
