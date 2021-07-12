@@ -32,6 +32,7 @@ router.post(
     campground.reviews.push(review)
     await review.save()
     await campground.save()
+    req.flash('success', 'Successfully created a new Review')
     res.redirect(`/campground/${campground._id}`)
   })
 )

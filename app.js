@@ -9,7 +9,8 @@ const ExpressError = require('./utils/ExpressError')
 const cathcAsync = require('./utils/cathcAsync.js')
 const Review = require('./models/reviews')
 
-//const session = require('express-session')
+const session = require('express-session')
+const flash = require('connect-flash')
 
 const campground = require('./routes/campground')
 const review = require('./routes/reviews')
@@ -42,13 +43,24 @@ db.once('open', () => {
   console.log('DataBase Connected')
 })
 
-// const sessionConfig = {
-//   secret: 'This is a top secret',
-//   resave: false,
-//   saveUninitialized: true,
-// }
+const sessionConfig = {
+  secret: 'This is a top secret',
+  resave: false,
+  saveUninitialized: true,
+  cookie: {
+    httpOnly: true,
+    expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
+    maxAge: 1000 * 60 * 60 * 24 * 7,
+  },
+}
+app.use(session(sessionConfig))
+app.use(flash())
 
-// app.use(session(sessionConfig))
+app.use((req, res, next) => {
+  res.locals.success = req.flash('success')
+  res.locals.error = req.flash('error')
+  next()
+})
 
 app.get('/', (req, res) => {
   //res.send('Hello!Welcome to Yelp-Camp')

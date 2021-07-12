@@ -38,6 +38,7 @@ router.post(
     //   throw new ExpressError('Invalid Campground Data', 400
     const camp = new Campground(req.body.campground)
     await camp.save()
+    req.flash('success', 'Successfully created a new Campground')
     res.redirect(`/campground/${camp.id}`)
   })
 )
@@ -48,6 +49,10 @@ router.get(
     const campground = await Campground.findById(req.params.id).populate(
       'reviews'
     )
+    if (!campground) {
+      req.flash('error', 'Cannot find the campground')
+      return res.redirect('/campground')
+    }
     res.render('campground/show.ejs', { campground })
   })
 )
@@ -60,6 +65,7 @@ router.put(
     const camp = await Campground.findByIdAndUpdate(id, {
       ...req.body.campground,
     })
+    req.flash('success', 'Successfully created a Updated Campground')
 
     res.redirect(`/campground/${camp.id}`)
   })
@@ -69,6 +75,10 @@ router.get(
   '/:id/edit',
   catchAsync(async (req, res) => {
     const camp = await Campground.findById(req.params.id)
+    if (!camp) {
+      req.flash('error', 'Cannot find the campground')
+      return res.redirect('/campground')
+    }
     res.render('editC.ejs', { camp })
   })
 )
