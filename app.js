@@ -8,12 +8,20 @@ const catchAsync = require('./utils/cathcAsync.js')
 const ExpressError = require('./utils/ExpressError')
 const cathcAsync = require('./utils/cathcAsync.js')
 const Review = require('./models/reviews')
+const passport = require('passport')
+const LocalStrategy = require('passport-local')
+const User = require('./models/user')
+
+mongoose.set('useNewUrlParser', true)
+mongoose.set('useFindAndModify', false)
+mongoose.set('useCreateIndex', true)
 
 const session = require('express-session')
 const flash = require('connect-flash')
 
-const campground = require('./routes/campground')
-const review = require('./routes/reviews')
+const campgroundRoute = require('./routes/campground')
+const reviewRoute = require('./routes/reviews')
+const userRoute = require('./routes/user')
 
 const app = express()
 app.use(express.urlencoded({ extended: true }))
@@ -56,19 +64,42 @@ const sessionConfig = {
 app.use(session(sessionConfig))
 app.use(flash())
 
+app.use(passport.initialize())
+app.use(passport.session())
+passport.use(new LocalStrategy(User.authenticate()))
+
+passport.serializeUser(User.serializeUser())
+passport.deserializeUser(User.deserializeUser())
+
 app.use((req, res, next) => {
+  // console.log(req.session)
+  // if (!['/login', '/register', '/'].includes(req.originalUrl)) {
+  //   console.log(req.originalUrl)
+  //   req.session.returnTo = req.originalUrl
+  // }
+  res.locals.isSignedInUser = req.user
   res.locals.success = req.flash('success')
   res.locals.error = req.flash('error')
   next()
 })
+
+// app.get('/fake', async (req, res) => {
+//   const user = new User({
+//     email: 'satdjasdaskdadhakj@gmail.com',
+//     username: 'abcxyasdadadz',
+//   })
+//   const newUser = await User.register(user, 'chidasdascken')
+//   res.render(newUser)
+// })
 
 app.get('/', (req, res) => {
   //res.send('Hello!Welcome to Yelp-Camp')
   res.render('home.ejs')
 })
 
-app.use('/campground', campground)
-app.use('/campground/:id/review', review)
+app.use('/campground', campgroundRoute)
+app.use('/campground/:id/review', reviewRoute)
+app.use('/', userRoute)
 app.use(express.static(path.join(__dirname, 'public')))
 
 // app.get('/dogs', (req, res) => {
@@ -85,6 +116,6 @@ app.use((err, req, res, next) => {
   console.log(err)
 })
 
-app.listen(3005, () => {
+app.listen(3000, () => {
   console.log('Hello ! welcome to Yelp-Camp')
 })
