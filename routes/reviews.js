@@ -7,6 +7,7 @@ const { reviewSchema } = require('../schemas.js')
 const Campground = require('../models/campground')
 const Review = require('../models/reviews')
 const isLoggedIn = require('../middleware')
+const reviewController = require('../controller/reviews')
 
 const cathcAsync = (func) => {
   return (req, res, next) => {
@@ -38,27 +39,13 @@ router.post(
   '/',
   validateReview,
   isLoggedIn,
-  cathcAsync(async (req, res) => {
-    const campground = await Campground.findById(req.params.id)
-    const review = new Review(req.body.review)
-    review.author = req.user._id
-    campground.reviews.push(review)
-    await review.save()
-    await campground.save()
-    req.flash('success', 'Successfully created a new Review')
-    res.redirect(`/campground/${campground._id}`)
-  })
+  cathcAsync(reviewController.createReview)
 )
 
 router.delete(
   '/:reviewId',
   isLoggedIn,
-  catchAsync(async (req, res) => {
-    const { id, reviewId } = req.params
-    await Campground.findByIdAndUpdate(id, { $pull: { reviews: reviewId } })
-    await Review.findByIdAndDelete(reviewId)
-    res.redirect(`/campground/${id}`)
-  })
+  catchAsync(reviewController.deleteReview)
 )
 
 module.exports = router
