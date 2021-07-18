@@ -6,7 +6,7 @@
 <% for( let campground of campgrounds ) {%>
 <div class="card" mb-3>
   <div class="row">
-    <% if(campground.images.length >= 1) { %>
+    <% if(campground.images.length > 1) { %>
     <div class="col-md-4">
       <img class="img-fluid" alt="" src="<%=campground.images[0].url%>" />
     </div>

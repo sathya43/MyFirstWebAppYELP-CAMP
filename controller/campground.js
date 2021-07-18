@@ -18,10 +18,10 @@ module.exports.createCampground = async (req, res) => {
   //   throw new ExpressError('Invalid Campground Data', 400
   const camp = new Campground(req.body.campground)
 
-  camp.images = req.files.map((f) => ({ url: f.path, fileName: f.filename }))
+  camp.images = req.files.map((f) => ({ url: f.path, filename: f.filename }))
   camp.author = req.user._id
   await camp.save()
-  console.log(camp)
+  //console.log(camp)
   req.flash('success', 'Successfully created a new Campground')
   res.redirect(`/campground/${camp.id}`)
 }
@@ -49,23 +49,23 @@ module.exports.updateCampground = async (req, res) => {
   //   req.flash('error', 'You do not have permission to do that')
   //   return res.redirect(`/campground/${campground.id}`)
   // }
+  // console.log(req.files)
   const camp = await Campground.findByIdAndUpdate(id, {
     ...req.body.campground,
   })
-  console.log(req.files)
   const imgs = req.files.map((f) => ({ url: f.path, filename: f.filename }))
   camp.images.push(...imgs)
   await camp.save()
   //console.log(camp)
-  console.log(req.body.deleteImages)
+  //console.log(req.body.deleteImages)
   if (req.body.deleteImages) {
     for (let filename of req.body.deleteImages) {
       await cloudinary.uploader.destroy(filename)
     }
     await camp.updateOne({
-      $pull: { images: { fileName: { $in: req.body.deleteImages } } },
+      $pull: { images: { filename: { $in: req.body.deleteImages } } },
     })
-    console.log(camp)
+    // console.log(camp)
   }
   req.flash('success', 'Successfully created a Updated Campground')
 
