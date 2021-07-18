@@ -1,3 +1,7 @@
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config()
+}
+
 const express = require('express')
 const mongoose = require('mongoose')
 const path = require('path')
@@ -116,6 +120,6 @@ app.use((err, req, res, next) => {
   console.log(err)
 })
 
-app.listen(3000, () => {
+app.listen(3001, () => {
   console.log('Hello ! welcome to Yelp-Camp')
 })
