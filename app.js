@@ -199,6 +199,7 @@ app.use((err, req, res, next) => {
   console.log(err)
 })
 
+const port = process.env.PORT || 3000
 app.listen(3005, () => {
   console.log('Hello ! welcome to Yelp-Camp')
 })
