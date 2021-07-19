@@ -3,6 +3,8 @@
 // }
 require('dotenv').config()
 
+// mongodb+srv://dogesathya:<password>@yelp-cluster.ox1n9.mongodb.net/myFirstDatabase?retryWrites=true&w=majority
+
 const express = require('express')
 const mongoose = require('mongoose')
 const path = require('path')
@@ -26,6 +28,9 @@ mongoose.set('useCreateIndex', true)
 const session = require('express-session')
 const flash = require('connect-flash')
 
+const MongoStore = require('connect-mongo')
+console.log(MongoStore)
+
 const campgroundRoute = require('./routes/campground')
 const reviewRoute = require('./routes/reviews')
 const userRoute = require('./routes/user')
@@ -39,18 +44,24 @@ app.set('views', path.join(__dirname, 'views'))
 
 app.engine('ejs', ejsMate)
 
-const conectionvar = async () => {
-  try {
-    await mongoose.connect('mongodb://localhost:27017/yelp-camp', {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      useFindAndModify: false,
-    })
-  } catch (error) {
-    handleError(error)
-  }
-}
+//const dbUrl = process.env.DB_URL
+const dbUrl = process.env.DB_URL || 'mongodb://localhost:27017/yelp-camp'
+
+const conectionvar = catchAsync(async () => {
+  await mongoose.connect(dbUrl, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useFindAndModify: false,
+  })
+})
 conectionvar()
+
+// mongoose.connect(dbUrl, {
+//   useNewUrlParser: true,
+//   useCreateIndex: true,
+//   useUnifiedTopology: true,
+//   useFindAndModify: false,
+// })
 
 const db = mongoose.connection
 db.on('error', console.error.bind(console, 'connection error'))
@@ -58,9 +69,17 @@ db.once('open', () => {
   console.log('DataBase Connected')
 })
 
+// const store = new MongoDBStore({
+//   url: dbUrl,
+// secret: 'ThisIsAsecret',
+// touchAfter: 24 * 60 * 60,
+// })
+
+const secret = process.env.SECRET || 'thisshouldbeabettersecret!'
+
 const sessionConfig = {
   name: 'session',
-  secret: 'This is a top secret',
+  secret,
   resave: false,
   saveUninitialized: true,
   cookie: {
@@ -69,6 +88,11 @@ const sessionConfig = {
     expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
     maxAge: 1000 * 60 * 60 * 24 * 7,
   },
+  store: MongoStore.create({
+    secret,
+    mongoUrl: dbUrl,
+    touchAfter: 24 * 60 * 60,
+  }),
 }
 app.use(session(sessionConfig))
 app.use(flash())
